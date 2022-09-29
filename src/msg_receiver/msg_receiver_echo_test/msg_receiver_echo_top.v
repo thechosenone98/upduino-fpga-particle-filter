@@ -8,7 +8,7 @@ module msg_receiver_echo (
     output spi_ssn,
     output led_blue,
     output led_green,
-    output led_red,
+    output led_red
 );
 
     //Due to using UART, the SPI_SSN pin must be held high to avoid interfering with further programming of the flash
