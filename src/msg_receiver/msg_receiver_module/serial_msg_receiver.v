@@ -86,19 +86,6 @@ module serial_msg_receiver #(
 			end
 		endcase
 	end
-	
-	// // Register serial data when ready, ALWAYS!
-	// always @(posedge clk) begin
-	// 	if(rx_data_ready == 1'b1 && data_read == 1'b1) begin
-	// 		rx_data_reg <= rx_data;
-	// 		data_read <= 1'b0;
-	// 	end else if(!rx_data_ready && data_processed) begin
-	// 		data_read <= 1'b1;
-	// 		data_processed = 1'b0;
-	// 	end else if(curr_state == 'd0) begin
-	// 		data_read <= 1'b1;
-	// 	end
-	// end
 
 	// Output part of the FSM
 	always @(posedge clk or posedge reset) begin : FSM_SEQ
