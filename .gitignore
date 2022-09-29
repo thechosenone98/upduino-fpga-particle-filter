@@ -3,3 +3,9 @@
 *.bin
 *.json
 *.DS_STORE
+*.rpt
+/**/*.ini
+*.vcd
+*.gtkw
+*.out
+/**/*.pcf
