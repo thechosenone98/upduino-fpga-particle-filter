@@ -40,7 +40,7 @@ module serial_msg_receiver #(
 	reg [2:0] curr_state;
 	reg [2:0] next_state;
 	reg [DATA_MESSAGE_COUNTER_WIDTH - 1:0] data_countdown;
-	reg [START_MESSAGE_COUNTER_WIDTH - 1:0] counter;
+	reg [START_MESSAGE_COUNTER_WIDTH + 3 - 1:0] counter;
 
 	// FSM for detecting the type of message received and informing the next module of the type of data incoming
 	always @(*) begin : FSM_COMBO
@@ -54,24 +54,24 @@ module serial_msg_receiver #(
 			end
 			3'd1:
 			begin
-				if (data_processed && rx_data_reg == START_PARTICLE_MESSAGE[START_PARTICLE_MESSAGE_WIDTH - (counter << 3) - 1 -: 8] && rx_data_reg != START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - (counter << 3) - 1 -: 8]) begin
+				if (data_processed && rx_data_reg == START_PARTICLE_MESSAGE[START_PARTICLE_MESSAGE_WIDTH - counter - 1 -: 8] && rx_data_reg != START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd2;
-				end else if (rx_data_reg == START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - (counter << 3) - 1 -: 8] && rx_data_reg != START_PARTICLE_MESSAGE[START_MAP_MESSAGE_WIDTH - (counter << 3) - 1 -: 8]) begin
+				end else if (rx_data_reg == START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8] && rx_data_reg != START_PARTICLE_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd3;
 				end
 			end
 			3'd2:
 			begin
-				if (data_processed && rx_data_reg != START_PARTICLE_MESSAGE[START_PARTICLE_MESSAGE_WIDTH - (counter << 3) - 1 -: 8]) begin
+				if (data_processed && rx_data_reg != START_PARTICLE_MESSAGE[START_PARTICLE_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd0;
-				end else if (counter == START_PARTICLE_MESSAGE_LENGTH_BYTE - 1) begin
+				end else if (counter == START_PARTICLE_MESSAGE_WIDTH - 8) begin
 					next_state = 3'd4;
 				end
 			end
 			3'd3:
-				if (data_processed && rx_data_reg != START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - (counter << 3) - 1 -: 8]) begin
+				if (data_processed && rx_data_reg != START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd0;
-				end else if (counter == START_MAP_MESSAGE_LENGTH_BYTE - 1) begin
+				end else if (counter == START_MAP_MESSAGE_WIDTH - 8) begin
 					next_state = 3'd4;
 				end
 			3'd4:
@@ -116,7 +116,7 @@ module serial_msg_receiver #(
 						rx_data_reg <= rx_data;
 						data_read <= 1'b1;
 					end else if (data_read && !data_processed) begin
-						counter <= counter + 1'b1;
+						counter <= counter + 4'd8;
 						data_processed <= 1'b1;
 					end else if(data_processed && !rx_data_ready) begin
 						data_read <= 1'b0;
@@ -131,7 +131,7 @@ module serial_msg_receiver #(
 						rx_data_reg <= rx_data;
 						data_read <= 1'b1;
 					end else if (data_read && !data_processed) begin
-						counter <= counter + 1'b1;
+						counter <= counter + 4'd8;
 						data_processed <= 1'b1;
 					end else if(data_processed && !rx_data_ready) begin
 						data_read <= 1'b0;
@@ -146,7 +146,7 @@ module serial_msg_receiver #(
 						rx_data_reg <= rx_data;
 						data_read <= 1'b1;
 					end else if (data_read && !data_processed) begin
-						counter <= counter + 1'b1;
+						counter <= counter + 4'd8;
 						data_processed <= 1'b1;
 					end else if(data_processed && !rx_data_ready) begin
 						data_read <= 1'b0;
