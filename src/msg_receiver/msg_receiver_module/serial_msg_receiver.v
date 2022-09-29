@@ -88,96 +88,86 @@ module serial_msg_receiver #(
 	end
 
 	// Output part of the FSM
-	always @(posedge clk or posedge reset) begin : FSM_SEQ
-		if (reset == 1'b1) begin
-			curr_state <= 3'd0;
-			counter <= 'b0;
-			particle_data_flag <= 1'b0;
-			map_data_flag <= 1'b0;
-			data_processed <= 1'b0;
-			data_read <= 1'b0;
-		end
-		else begin
-			curr_state <= next_state;
-			case (curr_state)
-				3'd0: begin
-					counter <= 'b0;
-					particle_data_flag <= 1'b0;
-					map_data_flag <= 1'b0;
+	always @(posedge clk) begin : FSM_SEQ
+		curr_state <= next_state;
+		case (curr_state)
+			3'd0: begin
+				counter <= 'b0;
+				particle_data_flag <= 1'b0;
+				map_data_flag <= 1'b0;
+				data_read <= 1'b0;
+				data_processed <= 1'b0;
+				if(curr_state != next_state) begin
+					rx_data_reg <= rx_data;
+				end
+			end
+			3'd1:
+			begin
+				if (rx_data_ready && !data_read) begin
+					rx_data_reg <= rx_data;
+					data_read <= 1'b1;
+				end else if (data_read && !data_processed) begin
+					counter <= counter + 4'd8;
+					data_processed <= 1'b1;
+				end else if(data_processed && !rx_data_ready) begin
 					data_read <= 1'b0;
 					data_processed <= 1'b0;
-					if(curr_state != next_state) begin
-						rx_data_reg <= rx_data;
-					end
 				end
-				3'd1:
-				begin
-					if (rx_data_ready && !data_read) begin
-						rx_data_reg <= rx_data;
-						data_read <= 1'b1;
-					end else if (data_read && !data_processed) begin
-						counter <= counter + 4'd8;
-						data_processed <= 1'b1;
-					end else if(data_processed && !rx_data_ready) begin
-						data_read <= 1'b0;
-						data_processed <= 1'b0;
-					end
-				end
-				3'd2: 
-				begin
-					data_countdown <= PARTICLE_MESSAGE_LENGHT;
-					particle_data_flag  <= 1'b1;
-					if (rx_data_ready && !data_read) begin
-						rx_data_reg <= rx_data;
-						data_read <= 1'b1;
-					end else if (data_read && !data_processed) begin
-						counter <= counter + 4'd8;
-						data_processed <= 1'b1;
-					end else if(data_processed && !rx_data_ready) begin
-						data_read <= 1'b0;
-						data_processed <= 1'b0;
-					end
-				end
-				3'd3:
-				begin
-					data_countdown <= MAP_MESSAGE_LENGHT;
-					map_data_flag  <= 1'b1;
-					if (rx_data_ready && !data_read) begin
-						rx_data_reg <= rx_data;
-						data_read <= 1'b1;
-					end else if (data_read && !data_processed) begin
-						counter <= counter + 4'd8;
-						data_processed <= 1'b1;
-					end else if(data_processed && !rx_data_ready) begin
-						data_read <= 1'b0;
-						data_processed <= 1'b0;
-					end
-				end
-				3'd4:
-				begin
-					if (rx_data_ready && !data_read) begin
-						rx_data_reg <= rx_data;
-						data_read <= 1'b1;
-					end else if (data_read && !data_processed) begin
-						msg_out <= rx_data_reg;
-						data_countdown <= data_countdown - 1'b1;
-						data_processed <= 1'b1;
-					end else if(data_processed && !rx_data_ready) begin
-						data_read <= 1'b0;
-						data_processed <= 1'b0;
-					end
-				end
-				default:
-				begin
-					curr_state <= 3'd0;
-					counter <= 'b0;
-					data_processed <= 1'b0;
-					particle_data_flag <= 1'b0;
-					map_data_flag <= 1'b0;
+			end
+			3'd2: 
+			begin
+				data_countdown <= PARTICLE_MESSAGE_LENGHT;
+				particle_data_flag  <= 1'b1;
+				if (rx_data_ready && !data_read) begin
+					rx_data_reg <= rx_data;
+					data_read <= 1'b1;
+				end else if (data_read && !data_processed) begin
+					counter <= counter + 4'd8;
+					data_processed <= 1'b1;
+				end else if(data_processed && !rx_data_ready) begin
 					data_read <= 1'b0;
+					data_processed <= 1'b0;
 				end
-			endcase
-		end
+			end
+			3'd3:
+			begin
+				data_countdown <= MAP_MESSAGE_LENGHT;
+				map_data_flag  <= 1'b1;
+				if (rx_data_ready && !data_read) begin
+					rx_data_reg <= rx_data;
+					data_read <= 1'b1;
+				end else if (data_read && !data_processed) begin
+					counter <= counter + 4'd8;
+					data_processed <= 1'b1;
+				end else if(data_processed && !rx_data_ready) begin
+					data_read <= 1'b0;
+					data_processed <= 1'b0;
+				end
+			end
+			3'd4:
+			begin
+				if (rx_data_ready && !data_read) begin
+					rx_data_reg <= rx_data;
+					data_read <= 1'b1;
+				end else if (data_read && !data_processed) begin
+					msg_out <= rx_data_reg;
+					data_countdown <= data_countdown - 1'b1;
+					data_processed <= 1'b1;
+				end else if(data_processed && !rx_data_ready) begin
+					data_read <= 1'b0;
+					data_processed <= 1'b0;
+				end
+			end
+			default:
+			begin
+				curr_state <= 3'd0;
+				counter <= 'b0;
+				data_processed <= 1'b0;
+				particle_data_flag <= 1'b0;
+				map_data_flag <= 1'b0;
+				data_read <= 1'b0;
+			end
+		endcase
 	end
 
 	assign data_valid = data_processed && (curr_state == 3'd4);
