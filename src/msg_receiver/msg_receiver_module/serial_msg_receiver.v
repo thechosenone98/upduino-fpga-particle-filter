@@ -8,7 +8,6 @@ module serial_msg_receiver #(
 )
 (
 	input clk,
-	input reset,
 	input [7:0] rx_data,
 	input rx_data_ready,
 	output reg [7:0] msg_out,
@@ -58,6 +57,8 @@ module serial_msg_receiver #(
 					next_state = 3'd2;
 				end else if (data_processed && rx_data_reg == START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8] && rx_data_reg != START_PARTICLE_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd3;
+				end else if (rx_data_reg != START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8] && rx_data_reg != START_PARTICLE_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
+					next_state = 3'd0;
 				end
 			end
 			3'd2:
@@ -99,6 +100,8 @@ module serial_msg_receiver #(
 				data_processed <= 1'b0;
 				if(curr_state != next_state) begin
 					rx_data_reg <= rx_data;
+					data_read <= 1'b1;
+					data_processed <= 1'b1;
 				end
 			end
 			3'd1:
