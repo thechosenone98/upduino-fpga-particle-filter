@@ -56,7 +56,7 @@ module serial_msg_receiver #(
 			begin
 				if (data_processed && rx_data_reg == START_PARTICLE_MESSAGE[START_PARTICLE_MESSAGE_WIDTH - counter - 1 -: 8] && rx_data_reg != START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd2;
-				end else if (rx_data_reg == START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8] && rx_data_reg != START_PARTICLE_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
+				end else if (data_processed && rx_data_reg == START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8] && rx_data_reg != START_PARTICLE_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd3;
 				end
 			end
