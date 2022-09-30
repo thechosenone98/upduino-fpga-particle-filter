@@ -36,6 +36,7 @@ module serial_msg_receiver #(
 	reg [7:0] rx_data_reg;
 	reg data_read;
 	reg data_processed;
+	// reg first_byte; //Anti-glitch for data_valid
 	reg [2:0] curr_state;
 	reg [2:0] next_state;
 	reg [DATA_MESSAGE_COUNTER_WIDTH - 1:0] data_countdown;
@@ -65,14 +66,14 @@ module serial_msg_receiver #(
 			begin
 				if (data_processed && rx_data_reg != START_PARTICLE_MESSAGE[START_PARTICLE_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd0;
-				end else if (counter == START_PARTICLE_MESSAGE_WIDTH - 8) begin
+				end else if (!data_processed && counter == START_PARTICLE_MESSAGE_WIDTH - 8) begin
 					next_state = 3'd4;
 				end
 			end
 			3'd3:
 				if (data_processed && rx_data_reg != START_MAP_MESSAGE[START_MAP_MESSAGE_WIDTH - counter - 1 -: 8]) begin
 					next_state = 3'd0;
-				end else if (counter == START_MAP_MESSAGE_WIDTH - 8) begin
+				end else if (!data_processed && counter == START_MAP_MESSAGE_WIDTH - 8) begin
 					next_state = 3'd4;
 				end
 			3'd4:
