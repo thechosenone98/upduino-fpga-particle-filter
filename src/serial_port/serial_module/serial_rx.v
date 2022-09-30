@@ -113,6 +113,7 @@ always @(posedge i_Clock)
                 begin
                   r_Bit_Index <= 0;
                   r_SM_Main   <= s_RX_STOP_BIT;
+                  r_Rx_DV       <= 1'b1;
                 end
             end
         end // case: s_RX_DATA_BITS
@@ -129,7 +130,6 @@ always @(posedge i_Clock)
             end
           else
             begin
-              r_Rx_DV       <= 1'b1;
               r_Baud_Clock_Count <= 0;
               r_SM_Main     <= s_CLEANUP;
             end
