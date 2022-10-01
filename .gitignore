@@ -9,3 +9,6 @@
 *.gtkw
 *.out
 /**/*.pcf
+Book1-ThePhilosophers-Stone.txt
+/**/*.txt
+!src/dual_port_block_ram/dual_port_block_ram_test/demo_ramfile_generator/lorem_ipsum.txt
