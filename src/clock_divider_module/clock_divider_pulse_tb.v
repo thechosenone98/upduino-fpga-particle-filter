@@ -1,5 +1,5 @@
 // `include "./clock_divider_pulse.v"
-`timescale 1ns/0.1ps
+`timescale 1ns/1ps
 module clock_divider_pulse_tb;
 
     reg clk;
