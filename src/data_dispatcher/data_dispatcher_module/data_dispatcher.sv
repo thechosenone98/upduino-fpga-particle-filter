@@ -47,14 +47,12 @@ module data_dispatcher #(
         .dout(waddr)
     );
 
-    typedef enum bit [3:0] {
-        IDLE = 4'b0,
-        WAITING_FOR_DATA_PARTICLE = 4'b1,
-        WAITING_FOR_DATA_MAP = 4'b10,
-        FETCH_DESTINATION_ADDRESS_PARTICLE = 4'b11,
-        FETCH_DESTINATION_ADDRESS_MAP = 4'b100,
-        WRITING_TO_DESTINATION_ADDRESS = 4'b101,
-        SEND_PARTICLE_UPDATE_SIGNAL = 4'b110
+    typedef enum bit [2:0] {
+        IDLE = 3'b0,
+        WAITING_FOR_DATA_PARTICLE = 3'b1,
+        WAITING_FOR_DATA_MAP = 3'b10,
+        WRITING_TO_DESTINATION_ADDRESS = 3'b11,
+        SEND_PARTICLE_UPDATE_SIGNAL = 3'b100
     } state_t;
 
     state_t curr_state;
@@ -77,41 +75,23 @@ module data_dispatcher #(
             end
             WAITING_FOR_DATA_PARTICLE: 
             begin
+                raddr_dispatch = data_counter;
+                read_en_dispatch = 1'b1;
                 // NO FLAG DETECTED, RESET FSM
                 if (!particle_data_flag) begin
                     next_state = IDLE;
                 end else if (input_data_valid) begin
-                    next_state = FETCH_DESTINATION_ADDRESS_PARTICLE;
+                    next_state = WRITING_TO_DESTINATION_ADDRESS;
                 end
             end
             WAITING_FOR_DATA_MAP:
             begin
+                raddr_dispatch = data_counter;
+                read_en_dispatch = 1'b1;
                 // NO FLAG DETECTED, RESET FSM
                 if (!map_data_flag) begin
                     next_state = IDLE;
                 end else if (input_data_valid) begin
-                    next_state = FETCH_DESTINATION_ADDRESS_MAP;
-                end
-            end
-            FETCH_DESTINATION_ADDRESS_PARTICLE: 
-            begin
-                // NO FLAG DETECTED, RESET FSM
-                if (!particle_data_flag) begin
-                    next_state = IDLE;
-                end else begin
-                    raddr_dispatch = data_counter;
-                    read_en_dispatch = 1'b1;
-                    next_state = WRITING_TO_DESTINATION_ADDRESS;
-                end
-            end
-            FETCH_DESTINATION_ADDRESS_MAP: 
-            begin
-                // NO FLAG DETECTED, RESET FSM
-                if (!map_data_flag) begin
-                    next_state = IDLE;
-                end else begin
-                    raddr_dispatch = data_counter;
-                    read_en_dispatch = 1'b1;
                     next_state = WRITING_TO_DESTINATION_ADDRESS;
                 end
             end
@@ -122,10 +102,10 @@ module data_dispatcher #(
                 if (!particle_data_flag && !map_data_flag) begin
                     next_state = IDLE;
                 // REACHED END OF PARTICLE MESSAGE
-                end else if (particle_data_flag && data_counter == PARTICLE_MESSAGE_LENGHT_BYTE) begin
+                end else if (particle_data_flag && data_counter == PARTICLE_MESSAGE_LENGHT_BYTE - 1) begin
                     next_state = SEND_PARTICLE_UPDATE_SIGNAL;
                 // REACHED END OF MAP MESSAGE
-                end else if (map_data_flag && data_counter == MAP_MESSAGE_LENGHT_BYTE) begin
+                end else if (map_data_flag && data_counter == MAP_MESSAGE_LENGHT_BYTE - 1) begin
                     next_state = IDLE;
                 // STILL MORE PARTICLE DATA TO BE READ
                 end else if (particle_data_flag) begin
@@ -153,11 +133,7 @@ module data_dispatcher #(
             begin
                 data_counter <= 0;
             end
-            FETCH_DESTINATION_ADDRESS_PARTICLE:
-            begin
-                data_counter <= data_counter + 1;
-            end
-            FETCH_DESTINATION_ADDRESS_MAP: 
+            WRITING_TO_DESTINATION_ADDRESS: 
             begin
                 data_counter <= data_counter + 1;
             end
